@@ -1,0 +1,93 @@
+#!/bin/bash
+
+BASH_FILES_DIRECTORY="${HOME}/.dotfiles/bash"
+ORG_DOTFILES_BACKUP_LOCATION="${HOME}/.dotfiles_org"
+
+link_file()
+{
+  local f_name=$1
+  local dest_loc=$2
+
+  echo "Linking - $(tput setaf 2)${HOME}/.${f_name} $(tput sgr0) to ${dest_loc}"
+  ln -fs ${dest_loc} ${HOME}/.${f_name}
+}
+
+move_file()
+{
+  local f_name=$1
+  local dest_loc=$2
+
+  echo "Backing up - $(tput setaf 2)${HOME}/.${f_name} $(tput sgr0) to ${dest_loc}"
+  mv ${HOME}/.${f_name} ${dest_loc}/${f_name}
+}
+
+confirm_move()
+{
+  local f_name=$1
+  local dest_loc=$2
+
+  l_question="File $(tput setaf 2)${f_name}$(tput sgr0) exists.  Overwrite - (Y)es, (N)o, (D)iff: "
+
+  while true; do
+  read -p "${l_question} " -n 1 l_response
+    case $l_response in
+      [Yy]* )
+        echo
+        move_file $f_name $backup_loc
+        break
+        ;;
+      [Nn]* )
+        echo
+        break
+        ;;
+      [Dd]* )
+        echo
+        diff -u ${HOME}/.${f_name} ${dest_loc}/${f_name}
+        echo
+        ;;
+    esac
+  done
+}
+
+backup_dotfiles()
+{
+  shopt -s nullglob
+
+  local backup_loc="$1"
+  local new_dot_files_loc="$2"
+
+  if [[ ! -d ${backup_loc} ]]; then
+    mkdir -p ${backup_loc}
+  fi
+
+  local f_name
+    for script in ${new_dot_files_loc}/*; do
+      f_name=$(basename $script)
+
+      if [[ -e ${HOME}/.${f_name} ]] && [[ ! $(readlink ${HOME}/.${f_name}) == ${script} ]]; then
+        if [[ -e ${dest_loc}/${f_name} ]]; then
+          confirm_move $f_name $backup_loc
+        else
+          move_file $f_name $backup_loc
+          ln -fs ${script} ${HOME}/.${f_name}
+        fi
+      fi
+    done
+}
+
+link_dotfiles()
+{
+  local new_dot_files_loc="$1"
+
+  shopt -s nullglob
+  for script in ${new_dot_files_loc}/*; do
+      f_name=$(basename $script)
+
+      if [[ ! -e ${HOME}/.${f_name} ]] ; then
+        link_file $f_name $script
+      fi
+  done
+}
+
+backup_dotfiles ${ORG_DOTFILES_BACKUP_LOCATION} ${BASH_FILES_DIRECTORY}
+link_dotfiles ${BASH_FILES_DIRECTORY}
