@@ -46,11 +46,11 @@ do
     esac
 done
 
-mkdir -p ~{bin,dev/scratch,tmp}
+mkdir -p ~/{bin,dev/scratch,tmp}
 
-e_header "Backing up original dotfiles ..."
+# e_header "Backing up original dotfiles ..."
   source ${l_DOTFILES_DIRECTORY}/lib/post-merge.git_hook
-e_success "Finished backing up!!!"
+# e_success "Finished backing up!!!"
 
 cp ${l_DOTFILES_DIRECTORY}/lib/post-merge.git_hook ${l_DOTFILES_DIRECTORY}/.git/hooks/post-merge
 
