@@ -1,6 +1,6 @@
 #!/bin/bash
 
-l_DOTFILES_GIT_REMOTE="https://github.com/pjfoley/dotfiles.git"
+l_DOTFILES_GIT_REMOTE="git@github.com:pjfoley/dotfiles.git"
 l_DOTFILES_DIRECTORY="${HOME}/.dotfiles"
 
 l_CURRENT_DIR=${PWD}
