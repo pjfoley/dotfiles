@@ -54,4 +54,12 @@ mkdir -p ~/{bin,dev/scratch,tmp}
 
 cp ${l_DOTFILES_DIRECTORY}/lib/post-merge.git_hook ${l_DOTFILES_DIRECTORY}/.git/hooks/post-merge
 
+cat << EOF > ~/.sdirs
+  export DIR_dev="$HOME/dev"
+  export DIR_scratch="$HOME/scratch"
+  export DIR_dot="$HOME/.dotfiles"
+EOF
+
+chmod 600 ~/.sdirs
+
 source ~/.profile
