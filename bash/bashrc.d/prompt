@@ -177,8 +177,6 @@ xterm*|rxvt*|putty*)
     PS1+="\$(prompt_git)" # Git details
     PS1+="\n" # Newline
     PS1+="${style_chars}\$ \[${RESET}\]" # $ (and reset color)
-
-    PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME}: ${PWD/$HOME/~}\007"'
     ;;
 *)
     PS1='${debian_chroot:+($debian_chroot)}\u@\h $(promptpath)\$ '
