@@ -56,7 +56,7 @@ cp ${l_DOTFILES_DIRECTORY}/lib/post-merge.git_hook ${l_DOTFILES_DIRECTORY}/.git/
 
 cat << EOF > ~/.sdirs
   export DIR_dev="$HOME/dev"
-  export DIR_scratch="$HOME/scratch"
+  export DIR_scratch="$HOME/dev/scratch"
   export DIR_dot="$HOME/.dotfiles"
 EOF
 
