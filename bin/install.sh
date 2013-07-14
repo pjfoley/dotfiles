@@ -1,7 +1,7 @@
 #!/bin/bash
 
 l_DOTFILES_DIRECTORY="${HOME}/.dotfiles"
-l_DOTFILES_BASH_DIRECTORY="${l_DOTFILES_DIRECTORY}/bash"
+l_DOTFILES_BASH_DIRECTORY="${l_DOTFILES_DIRECTORY}/home"
 l_DOTFILES_GIT_REMOTE="https://github.com/pjfoley/dotfiles.git"
 l_ORG_DOTFILES_BACKUP_LOCATION="${HOME}/.dotfiles_org"
 
@@ -52,7 +52,7 @@ mkdir -p ~/{bin,dev/scratch,tmp}
   source ${l_DOTFILES_DIRECTORY}/lib/post-merge.git_hook
 # e_success "Finished backing up!!!"
 
-cp ${l_DOTFILES_DIRECTORY}/lib/post-merge.git_hook ${l_DOTFILES_DIRECTORY}/.git/hooks/post-merge
+# cp ${l_DOTFILES_DIRECTORY}/lib/post-merge.git_hook ${l_DOTFILES_DIRECTORY}/.git/hooks/post-merge
 
 cat << EOF > ~/.sdirs
   export DIR_dev="$HOME/dev"
