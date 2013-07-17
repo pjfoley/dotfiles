@@ -8,6 +8,18 @@ lnk(){ ln -fs $1 $2; echo "Linking - $(tput setaf 2)${1} $(tput sgr0) to ${2}"; 
 cpy(){ cp -Rpf $1 $2; echo "Copying - $(tput setaf 2)${1} $(tput sgr0) to ${2}"; }
 mov(){ mv -fu $1 $2; echo "Moving - $(tput setaf 2)${1} $(tput sgr0) to ${2}"; }
 
+exists_file()
+{
+  ( [[ $# == 1 ]] \
+    && ( [[ -e ${1} ]] )
+  ) || \
+  ( [[ $# == 2 ]] \
+      && ( [[ -h ${2} ]] && [[ $(readlink ${2}) == ${1} ]] ) \
+      || ( [[ -e $2 ]] && $(cmp -s $1 $2) ) \
+  ) ;
+}
+not_exists_file(){ ! (( [[ $# == 1 ]] && exists_file $1 ) || ( [[ $# == 2 ]] && exists_file $1 $2)) ; }
+
 confirm_move()
 {
   l_question="File $(tput setaf 2)${1}$(tput sgr0) exists.  Overwrite - (Y)es, (N)o, (D)iff: "
