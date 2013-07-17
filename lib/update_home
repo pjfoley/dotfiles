@@ -1,39 +1,23 @@
 #!/bin/bash
 
-BASH_FILES_DIRECTORY="${HOME}/.dotfiles/bash"
-ORG_DOTFILES_BACKUP_LOCATION="${HOME}/.dotfiles_org"
+(( $# >= 1 )) && [ -d $1 ] && USER_HOME=${1%/} || USER_HOME="${HOME}"
+(( $# >= 2 )) && [ -d $2 ] && DOTFILES_SRC=${2%/} || DOTFILES_SRC="${USER_HOME}/.dotfiles/home"
+(( $# >= 3 )) && [ -d $3 ] && DOTFILES_BKUP=${3%/} || DOTFILES_BKUP="${USER_HOME}/.dotfiles_org"
 
-link_file()
-{
-  local f_name=$1
-  local dest_loc=$2
-
-  echo "Linking - $(tput setaf 2)${HOME}/.${f_name} $(tput sgr0) to ${dest_loc}"
-  ln -fs ${dest_loc} ${HOME}/.${f_name}
-}
-
-move_file()
-{
-  local f_name=$1
-  local dest_loc=$2
-
-  echo "Backing up - $(tput setaf 2)${HOME}/.${f_name} $(tput sgr0) to ${dest_loc}"
-  mv ${HOME}/.${f_name} ${dest_loc}/${f_name}
-}
+lnk(){ ln -fs $1 $2; echo "Linking - $(tput setaf 2)${1} $(tput sgr0) to ${2}"; }
+cpy(){ cp -Rpf $1 $2; echo "Copying - $(tput setaf 2)${1} $(tput sgr0) to ${2}"; }
+mov(){ mv -fu $1 $2; echo "Moving - $(tput setaf 2)${1} $(tput sgr0) to ${2}"; }
 
 confirm_move()
 {
-  local f_name=$1
-  local dest_loc=$2
-
-  l_question="File $(tput setaf 2)${f_name}$(tput sgr0) exists.  Overwrite - (Y)es, (N)o, (D)iff: "
+  l_question="File $(tput setaf 2)${1}$(tput sgr0) exists.  Overwrite - (Y)es, (N)o, (D)iff: "
 
   while true; do
   read -p "${l_question} " -n 1 l_response
     case $l_response in
       [Yy]* )
         echo
-        move_file $f_name $backup_loc
+        mov ${1} ${2}
         break
         ;;
       [Nn]* )
@@ -42,7 +26,7 @@ confirm_move()
         ;;
       [Dd]* )
         echo
-        diff -u ${HOME}/.${f_name} ${dest_loc}/${f_name}
+        diff -u ${1} ${2}
         echo
         ;;
     esac
@@ -75,19 +59,56 @@ backup_dotfiles()
     done
 }
 
-link_dotfiles()
+
+dotfile_real_name()
 {
-  local new_dot_files_loc="$1"
+  case "${2::4}" in
+    "dot_" )
+      return "${1}/.${2:4}" ;;
+    "cpy_" )
+      return "${1}/${2:4}" ;;
+    * )
+      return "${1}/${2}" ;;
+  esac
+}
 
-  shopt -s nullglob
-  for script in ${new_dot_files_loc}/*; do
-      f_name=$(basename $script)
 
-      if [[ ! -e ${HOME}/.${f_name} ]] ; then
-        link_file $f_name $script
+
+
+
+file_type_action()
+{
+  f_name=$1
+  SOURCE=$2
+
+  case "${f_name::4}" in
+    "dot_" )
+      $DESTINATION="${USER_HOME}/.${f_name:4}"
+      not_exists_file $SOURCE $DESTINATION && lnk $SOURCE $DESTINATION ;;
+    "cpy_" )
+      $DESTINATION="${USER_HOME}/${f_name:4}"
+      not_exists_file $SOURCE $DESTINATION && cpy $SOURCE $DESTINATION ;;
+    * )
+      $DESTINATION="${USER_HOME}/${f_name}"
+      not_exists_file $SOURCE $DESTINATION && lnk $SOURCE $DESTINATION ;;
+  esac
+
+}
+
+
+sync_files()
+{
+  local dotfiles_src="$1"
+
+  for SOURCE in ${dotfiles_src}/*; do
+      f_name=$(basename $SOURCE)
+
+      if [[ ! -e ${USER_HOME}/.${f_name} ]] ; then
+        file_type_action $f_name $SOURCE
       fi
   done
 }
 
-backup_dotfiles ${ORG_DOTFILES_BACKUP_LOCATION} ${BASH_FILES_DIRECTORY}
-link_dotfiles ${BASH_FILES_DIRECTORY}
+
+backup_dotfiles ${DOTFILES_BKUP} ${DOTFILES_SRC}
+sync_dotfiles ${DOTFILES_SRC}
