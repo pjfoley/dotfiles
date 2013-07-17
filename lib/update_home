@@ -10,117 +10,101 @@ mov(){ mv -fu $2 $3; echo "${1} - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
 
 exists_file()
 {
+  # Check for existance of file or directory
   ( [[ $# == 1 ]] \
     && ( [[ -e ${1} ]] )
   ) || \
+  # If link confirm it points to dot file or if exists both files equal each other
   ( [[ $# == 2 ]] \
       && ( [[ -h ${2} ]] && [[ $(readlink ${2}) == ${1} ]] ) \
       || ( [[ -e $2 ]] && $(cmp -s $1 $2) ) \
   ) ;
 }
+# Call exists function and negate the result
 not_exists_file(){ ! (( [[ $# == 1 ]] && exists_file $1 ) || ( [[ $# == 2 ]] && exists_file $1 $2)) ; }
+
+if [[ ! -d ${DOTFILES_BKUP} ]]; then
+  mkdir -p ${DOTFILES_BKUP}
+fi
 
 confirm_move()
 {
-  l_question="File $(tput setaf 2)${1}$(tput sgr0) exists.  Overwrite - (Y)es, (N)o, (D)iff: "
+  l_question="Back of $(tput setaf 2)${1}$(tput sgr0) already exists.  Overwrite existing backup - (Y)es, (N)o: "
 
   while true; do
   read -p "${l_question} " -n 1 l_response
     case $l_response in
       [Yy]* )
         echo
-        mov ${1} ${2}
+        echo true
         break
         ;;
       [Nn]* )
         echo
+        echo false
         break
-        ;;
-      [Dd]* )
-        echo
-        diff -u ${1} ${2}
-        echo
         ;;
     esac
   done
 }
 
-backup_dotfiles()
+# Files marked as cpy or mov will be move
+file_real_name()
 {
-  shopt -s nullglob
-
-  local backup_loc="$1"
-  local new_dot_files_loc="$2"
-
-  if [[ ! -d ${backup_loc} ]]; then
-    mkdir -p ${backup_loc}
-  fi
-
-  local f_name
-    for script in ${new_dot_files_loc}/*; do
-      f_name=$(basename $script)
-
-      if [[ -e ${HOME}/.${f_name} ]] && [[ ! $(readlink ${HOME}/.${f_name}) == ${script} ]]; then
-        if [[ -e ${dest_loc}/${f_name} ]]; then
-          confirm_move $f_name $backup_loc
-        else
-          move_file $f_name $backup_loc
-          ln -fs ${script} ${HOME}/.${f_name}
-        fi
-      fi
-    done
-}
-
-
-dotfile_real_name()
-{
-  case "${2::4}" in
+  case "${1::4}" in
     "dot_" )
-      return "${1}/.${2:4}" ;;
-    "cpy_" )
-      return "${1}/${2:4}" ;;
+      echo ".${1:4}" ;;
+    "cpy_" | "mov_" )
+      echo "${1:4}" ;;
     * )
-      return "${1}/${2}" ;;
+      echo "${1}" ;;
   esac
 }
 
-
-
-
-
-file_type_action()
+dotfiles_action()
 {
-  f_name=$1
+  DOTFILES_FILE=$1
   SOURCE=$2
+  DESTINATION=$3
 
-  case "${f_name::4}" in
-    "dot_" )
-      $DESTINATION="${USER_HOME}/.${f_name:4}"
-      not_exists_file $SOURCE $DESTINATION && lnk $SOURCE $DESTINATION ;;
+  case "${DOTFILES_FILE::4}" in
+    "mov_" )
+    mov "Moving" $SOURCE $DESTINATION ;;
     "cpy_" )
-      $DESTINATION="${USER_HOME}/${f_name:4}"
-      not_exists_file $SOURCE $DESTINATION && cpy $SOURCE $DESTINATION ;;
-    * )
-      $DESTINATION="${USER_HOME}/${f_name}"
-      not_exists_file $SOURCE $DESTINATION && lnk $SOURCE $DESTINATION ;;
+    cpy "Copying" $SOURCE $DESTINATION ;;
+    "dot_" | * )
+    lnk "Linking" $SOURCE $DESTINATION ;;
   esac
-
 }
-
 
 sync_files()
 {
   local dotfiles_src="$1"
 
   for SOURCE in ${dotfiles_src}/*; do
-      f_name=$(basename $SOURCE)
+    DOTFILES_FILE=$(basename $SOURCE)
+    HOME_FILE="${USER_HOME}/$(file_real_name $DOTFILES_FILE)"
+    BACKUP_FILE="${DOTFILES_BKUP}/$(basename $HOME_FILE)"
 
-      if [[ ! -e ${USER_HOME}/.${f_name} ]] ; then
-        file_type_action $f_name $SOURCE
+    # If File is not in home just write
+    if not_exists_file $HOME_FILE ; then
+      dotfiles_action $DOTFILES_FILE $SOURCE $HOME_FILE
+    # Don't do anything if dotfile is in home directory
+    elif not_exists_file $SOURCE $HOME_FILE ; then
+      # Just move file in home dir if there is not already a backup
+      if not_exists_file $BACKUP_FILE ; then
+        mov "Backing up" $HOME_FILE $BACKUP_FILE
+        dotfiles_action $DOTFILES_FILE $SOURCE ${HOME_FILE}
+      # If there is a backup ask user if its ok to overwrite backed up file
+      else
+        l_result=$(confirm_move ${DOTFILES_FILE:4} $SOURCE $BACKUP_FILE)
+        if $l_result ; then
+          mov "Backing up" $HOME_FILE $BACKUP_FILE
+          dotfiles_action $DOTFILES_FILE $SOURCE ${HOME_FILE}
+        fi
       fi
+    fi
   done
 }
 
-
-backup_dotfiles ${DOTFILES_BKUP} ${DOTFILES_SRC}
-sync_dotfiles ${DOTFILES_SRC}
+sync_files ${DOTFILES_SRC}
