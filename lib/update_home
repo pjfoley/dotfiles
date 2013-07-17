@@ -4,9 +4,9 @@
 (( $# >= 2 )) && [ -d $2 ] && DOTFILES_SRC=${2%/} || DOTFILES_SRC="${USER_HOME}/.dotfiles/home"
 (( $# >= 3 )) && [ -d $3 ] && DOTFILES_BKUP=${3%/} || DOTFILES_BKUP="${USER_HOME}/.dotfiles_org"
 
-lnk(){ ln -fs $1 $2; echo "Linking - $(tput setaf 2)${1} $(tput sgr0) to ${2}"; }
-cpy(){ cp -Rpf $1 $2; echo "Copying - $(tput setaf 2)${1} $(tput sgr0) to ${2}"; }
-mov(){ mv -fu $1 $2; echo "Moving - $(tput setaf 2)${1} $(tput sgr0) to ${2}"; }
+lnk(){ ln -fs $2 $3; echo "${1} - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
+cpy(){ cp -Rpf $2 $3; echo "${1} - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
+mov(){ mv -fu $2 $3; echo "${1} - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
 
 exists_file()
 {
