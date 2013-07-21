@@ -4,9 +4,10 @@
 (( $# >= 2 )) && [ -d $2 ] && DOTFILES_SRC=${2%/} || DOTFILES_SRC="${USER_HOME}/.dotfiles/home"
 (( $# >= 3 )) && [ -d $3 ] && DOTFILES_BKUP=${3%/} || DOTFILES_BKUP="${USER_HOME}/.dotfiles_org"
 
-lnk(){ ln -fs $2 $3; echo "${1} - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
-cpy(){ cp -Rpf $2 $3; echo "${1} - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
-mov(){ mv -fu $2 $3; echo "${1} - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
+lnk(){ ln -fs $2 $3; echo "$(tput setaf 3)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
+cpy(){ mkdir -p "$(dirname $3)" && cp -Rpf $2 $3; echo "$(tput setaf 5)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
+mov(){ mkdir -p "$(dirname $3)" && mv -fu $2 $3; echo "$(tput setaf 1)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
+mkd(){ mkdir -p $3; echo "$(tput setaf 1)${1} $(tput sgr0) - $(tput setaf 2)${3} $(tput sgr0)"; }
 
 exists_file()
 {
@@ -17,7 +18,8 @@ exists_file()
   # If link confirm it points to dot file or if exists both files equal each other
   ( [[ $# == 2 ]] \
       && ( [[ -h ${2} ]] && [[ $(readlink ${2}) == ${1} ]] ) \
-      || ( [[ -e $2 ]] && $(cmp -s $1 $2) ) \
+      || ( [[ ! -d $2 ]] && [[ -e $2 ]] && $(cmp -s $1 $2) ) \
+      || ( [[ -d $2 ]] && [[ "$(file_real_name $(get_dir $1 $DOTFILES_SRC))"  == "$(file_real_name $(get_dir $2 $USER_HOME))" ]] ) \
   ) ;
 }
 # Call exists function and negate the result
@@ -48,13 +50,31 @@ confirm_move()
   done
 }
 
+get_dir()
+{
+  FULL_FILE_PATH=$1
+  DOTFILES=$2
+
+  HEAD="$(file_real_name $(basename $FULL_FILE_PATH))"
+  RESIDUAL_PATH=$(dirname ${FULL_FILE_PATH})
+
+  while [[ ! ${DOTFILES%/} == $RESIDUAL_PATH ]]; do
+    HEAD="$(file_real_name $(basename $RESIDUAL_PATH))/$HEAD"
+    RESIDUAL_PATH=$(dirname $RESIDUAL_PATH)
+  done
+
+  echo $HEAD
+}
+
+
+
 # Files marked as cpy or mov will be move
 file_real_name()
 {
   case "${1::4}" in
     "dot_" )
       echo ".${1:4}" ;;
-    "cpy_" | "mov_" )
+    "cpy_" | "mov_" | "mkd_" )
       echo "${1:4}" ;;
     * )
       echo "${1}" ;;
@@ -69,22 +89,34 @@ dotfiles_action()
 
   case "${DOTFILES_FILE::4}" in
     "mov_" )
-    mov "Moving" $SOURCE $DESTINATION ;;
+      mov "Moving" $SOURCE $DESTINATION ;;
+    "mkd_" )
+      mkd "Make Directory" $SOURCE $DESTINATION ;;
     "cpy_" )
-    cpy "Copying" $SOURCE $DESTINATION ;;
+      cpy "Copying" $SOURCE $DESTINATION ;;
     "dot_" | * )
-    lnk "Linking" $SOURCE $DESTINATION ;;
+      lnk "Linking" $SOURCE $DESTINATION ;;
   esac
 }
 
 sync_files()
 {
   local dotfiles_src="$1"
+  local dotfiles_subdirectory="$2"
 
-  for SOURCE in ${dotfiles_src}/*; do
+  for SOURCE in ${dotfiles_src}; do
     DOTFILES_FILE=$(basename $SOURCE)
-    HOME_FILE="${USER_HOME}/$(file_real_name $DOTFILES_FILE)"
-    BACKUP_FILE="${DOTFILES_BKUP}/$(basename $HOME_FILE)"
+
+    # if there are two parameters register the sub directory
+    if [[ $# == 2 ]] ; then
+      HOME_FILE="${USER_HOME}/${dotfiles_subdirectory}/$(file_real_name $DOTFILES_FILE)"
+      BACKUP_FILE="${DOTFILES_BKUP}/${dotfiles_subdirectory}/$(basename $HOME_FILE)"
+      [[ "${DOTFILES_FILE::4}" == "mkd_" ]] && SUBDIR="$(get_dir $SOURCE $DOTFILES_SRC)" || SUBDIR=$dotfiles_subdirectory
+    else
+      HOME_FILE="${USER_HOME}/$(file_real_name $DOTFILES_FILE)"
+      BACKUP_FILE="${DOTFILES_BKUP}/$(basename $HOME_FILE)"
+      [[ "${DOTFILES_FILE::4}" == "mkd_" ]] && SUBDIR="$(get_dir $SOURCE $DOTFILES_SRC)" || SUBDIR=""
+    fi
 
     # If File is not in home just write
     if not_exists_file $HOME_FILE ; then
@@ -104,7 +136,15 @@ sync_files()
         fi
       fi
     fi
+    [[ "${DOTFILES_FILE::4}" == "mkd_" ]] && [[ $SUBDIR ]] && sync_files "${SOURCE%/}/*" "$(get_dir $SOURCE $DOTFILES_SRC)"
   done
 }
 
-sync_files ${DOTFILES_SRC}
+
+install_dotfiles()
+{
+  sync_files "${1%/}/*"
+}
+
+
+install_dotfiles ${DOTFILES_SRC}
