@@ -2,4 +2,4 @@
 
 . "$(dirname $0)/update_home" "$@"
 
-install_dotfiles ${DOTFILES_SRC}
+clean_dotfiles ${DOTFILES_SRC}

@@ -146,6 +146,14 @@ sync_files()
 }
 
 
+clean_dotfiles()
+{
+  echo "USER Home     - $USER_HOME"
+  echo "DOTFILES_SRC  - $DOTFILES_SRC"
+  echo "DOTFILES_BKUP - $DOTFILES_BKUP"
+
+}
+
 install_dotfiles()
 {
   sync_files "${1%/}/*"
