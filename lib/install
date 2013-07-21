@@ -1,0 +1,9 @@
+#!/bin/bash
+
+(( $# >= 1 )) && [ -d $1 ] && USER_HOME=${1%/} || USER_HOME="${HOME}"
+(( $# >= 2 )) && [ -d $2 ] && DOTFILES_SRC=${2%/} || DOTFILES_SRC="${USER_HOME}/.dotfiles/home"
+(( $# >= 3 )) && [ -d $3 ] && DOTFILES_BKUP=${3%/} || DOTFILES_BKUP="${USER_HOME}/.dotfiles_org"
+
+. "$(dirname $0)/update_home" "$USER_HOME" "$DOTFILES_SRC" "$DOTFILES_BKUP"
+
+install_dotfiles ${DOTFILES_SRC}
