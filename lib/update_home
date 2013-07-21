@@ -4,15 +4,12 @@
 (( $# >= 2 )) && [ -d $2 ] && DOTFILES_SRC=${2%/} || DOTFILES_SRC="${USER_HOME}/.dotfiles/home"
 (( $# >= 3 )) && [ -d $3 ] && DOTFILES_BKUP=${3%/} || DOTFILES_BKUP="${USER_HOME}/.dotfiles_org"
 
-#lnk(){ echo "$(tput setaf 3)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
-#cpy(){ echo "$(tput setaf 5)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
-#mov(){ echo "$(tput setaf 1)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
-#mkd(){ echo "$(tput setaf 1)${1} $(tput sgr0) - $(tput setaf 2)${3} $(tput sgr0)"; }
-
 lnk(){ ln -fs $2 $3; echo "$(tput setaf 3)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
 cpy(){ mkdir -p "$(dirname $3)" && cp -Rpf $2 $3; echo "$(tput setaf 5)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
 mov(){ mkdir -p "$(dirname $3)" && mv -fu $2 $3; echo "$(tput setaf 1)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
 mkd(){ mkdir -p $3; echo "$(tput setaf 1)${1} $(tput sgr0) - $(tput setaf 2)${3} $(tput sgr0)"; }
+rm_f(){ rm -f $2; echo "$(tput setaf 1)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0)"; }
+rm_d(){ rmdir $2; echo "$(tput setaf 1)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0)"; }
 
 exists_file()
 {
@@ -36,7 +33,7 @@ fi
 
 confirm_move()
 {
-  l_question="Back of $(tput setaf 2)${1}$(tput sgr0) already exists.  Overwrite existing backup - (Y)es, (N)o: "
+  l_question="$*"
 
   while true; do
   read -p "${l_question} " -n 1 l_response
@@ -68,7 +65,7 @@ get_dir()
     RESIDUAL_PATH=$(dirname $RESIDUAL_PATH)
   done
 
-  echo $HEAD
+  [[ ! "$HEAD" == "." ]] && echo $HEAD || echo
 }
 
 
@@ -134,7 +131,8 @@ sync_files()
         dotfiles_action $DOTFILES_FILE $SOURCE ${HOME_FILE}
       # If there is a backup ask user if its ok to overwrite backed up file
       else
-        l_result=$(confirm_move ${DOTFILES_FILE:4} $SOURCE $BACKUP_FILE)
+        l_question="Backup of $(tput setaf 2)${DOTFILES_FILE:4}$(tput sgr0) already exists.  Overwrite existing backup - (Y)es, (N)o: "
+        l_result=$(confirm_move ${l_question})
         if $l_result ; then
           mov "Backing up" $HOME_FILE $BACKUP_FILE
           dotfiles_action $DOTFILES_FILE $SOURCE ${HOME_FILE}
@@ -148,13 +146,29 @@ sync_files()
 
 clean_dotfiles()
 {
-  echo "USER Home     - $USER_HOME"
-  echo "DOTFILES_SRC  - $DOTFILES_SRC"
-  echo "DOTFILES_BKUP - $DOTFILES_BKUP"
+  # Should only be list of removed git files
+  GIT_CHANGES=$1
+  for SOURCE in ${1}; do
+    HOME_FILE="${USER_HOME}/$(get_dir $DOTFILES_SRC/$SOURCE $DOTFILES_SRC)"
+    SUBDIR="$(get_dir $DOTFILES_SRC/$(dirname $SOURCE) $DOTFILES_SRC)"
 
+    if [[ -f $HOME_FILE ]] || [[ -h $HOME_FILE ]] ; then
+      rm_f "Removed (from GIT)" $HOME_FILE
+
+      if  [[ "$SUBDIR" ]] && [[ -e ${USER_HOME}/${SUBDIR} ]] && [[ $(ls -1A ${USER_HOME}/${SUBDIR} | wc -l ) -eq 0 ]] ; then
+        rm_d "Removed (from GIT)" "${USER_HOME}/${SUBDIR}"
+      fi
+    elif [[ -d $HOME_FILE ]] && [[ $(ls -1A ${HOME_FILE} | wc -l ) -eq 0 ]] ; then
+      rm_d "Removed (from GIT)" $HOME_FILE
+    fi
+  done
 }
 
 install_dotfiles()
 {
-  sync_files "${1%/}/*"
+  if [[ $# == 0 ]] ; then
+    sync_files "${DOTFILES_SRC%/}/*"
+  else
+    sync_files "${1%/}/*"
+  fi
 }

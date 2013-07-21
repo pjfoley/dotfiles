@@ -1,5 +1,30 @@
 #!/bin/bash
 
-. "$(dirname $0)/update_home" "$@"
+SCRIPT_ABS_LOC="$(readlink -f $0)"
+SCRIPT_LOC="$(dirname ${SCRIPT_ABS_LOC})"
 
-install_dotfiles ${DOTFILES_SRC}
+if [[ -e "$2" ]] ; then
+  GIT_DIR="$(dirname $2)/.git"
+  GIT_WORK_TREE="$(dirname $GIT_DIR)"
+elif [[ "$(basename $SCRIPT_LOC)" == "hooks" ]] ; then
+  GIT_DIR="$(dirname $SCRIPT_LOC)"
+  GIT_WORK_TREE="$(dirname $GIT_DIR)"
+elif [[ "$(basename $SCRIPT_LOC)" == "lib" ]] ; then
+  GIT_DIR="$(dirname $SCRIPT_LOC)/.git"
+  GIT_WORK_TREE="$(dirname $GIT_DIR)"
+else
+  # Unknown Script Location
+  exit 1
+fi
+
+. "${GIT_WORK_TREE}/lib/update_home" "$@"
+
+install_dotfiles
+
+l_question="Install GIT post-merge hook to auto-update on git pull - (Y)es, (N)o: "
+l_result=$(confirm_move ${l_question})
+if $l_result ; then
+  echo ""
+  echo ""
+  cpy "Installing GIT Post Merge Hook" "${GIT_WORK_TREE}/lib/post-merge.git_hook" "${GIT_DIR}/hooks/post-merge"
+fi

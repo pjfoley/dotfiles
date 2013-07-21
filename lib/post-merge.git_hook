@@ -1,5 +1,30 @@
 #!/bin/bash
 
-. "$(dirname $0)/update_home" "$@"
+SCRIPT_ABS_LOC="$(readlink -f $0)"
+SCRIPT_LOC="$(dirname ${SCRIPT_ABS_LOC})"
 
-clean_dotfiles ${DOTFILES_SRC}
+if [[ -e "$2" ]] ; then
+  GIT_DIR="$(dirname $2)/.git"
+  GIT_WORK_TREE="$(dirname $GIT_DIR)"
+elif [[ "$(basename $SCRIPT_LOC)" == "hooks" ]] ; then
+  GIT_DIR="$(dirname $SCRIPT_LOC)"
+  GIT_WORK_TREE="$(dirname $GIT_DIR)"
+elif [[ "$(basename $SCRIPT_LOC)" == "lib" ]] ; then
+  GIT_DIR="$(dirname $SCRIPT_LOC)/.git"
+  GIT_WORK_TREE="$(dirname $GIT_DIR)"
+else
+  # Unknown Script Location
+  exit 1
+fi
+
+. "${GIT_WORK_TREE}/lib/update_home" "$@"
+
+GITCHANGES=$(git diff-tree --no-commit-id --name-only --relative=home --diff-filter=D -r HEAD)
+
+l_CUR_DIR=${PWD}
+
+cd $GIT_WORK_TREE
+git submodule update --recursive --init
+cd $l_CUR_DIR
+sync_files
+clean_dotfiles "${GITCHANGES}"
