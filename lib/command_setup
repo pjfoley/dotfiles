@@ -1,0 +1,16 @@
+#!/bin/bash
+
+DEFAULTS="~/default/dotfiles"
+
+[[ -e "${DEFAULTS}" ]] && . "${DEFAULTS}"
+
+(( $# >= 1 )) && USER_HOME=${1%/}
+(( $# >= 2 )) && DOTFILES_SRC=${2%/}
+(( $# >= 3 )) && DOTFILES_BKUP=${3%/}
+
+: ${USER_HOME?"Need to set the Home Directory"} ${DOTFILES_SRC?"Need to set the DOTFILES Directory"} ${DOTFILES_BKUP?"Need to set where you want to backup existing Dotfiles to"}
+
+[[ ! -d "${DOTFILES_SRC}" ]] && echo "${DOTFILES_SRC} does not exists, please clone a repo.  Exiting ..." && exit 1;
+
+
+[[ ! -d "${DOTFILES_BKUP}" ]] && echo "${DOTFILES_BKUP} does not exists, please select a location to backup existing dotfiles to.  Exiting ..." && exit 1;
