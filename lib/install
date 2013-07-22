@@ -26,5 +26,5 @@ l_result=$(confirm_move ${l_question})
 if $l_result ; then
   echo ""
   echo ""
-  cpy "Installing GIT Post Merge Hook" "${GIT_WORK_TREE}/lib/post-merge.git_hook" "${GIT_DIR}/hooks/post-merge"
+  lnk "Installing GIT Post Merge Hook" "${GIT_WORK_TREE}/lib/post-merge.git_hook" "${GIT_DIR}/hooks/post-merge"
 fi
