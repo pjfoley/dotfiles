@@ -1,8 +1,14 @@
 #!/bin/bash
 
-(( $# >= 1 )) && [ -d $1 ] && USER_HOME=${1%/} || USER_HOME="${HOME}"
-(( $# >= 2 )) && [ -d $2 ] && DOTFILES_SRC=${2%/} || DOTFILES_SRC="${USER_HOME}/.dotfiles/home"
-(( $# >= 3 )) && [ -d $3 ] && DOTFILES_BKUP=${3%/} || DOTFILES_BKUP="${USER_HOME}/.dotfiles_org"
+DEFAULTS="${DEFAULTS:=~/default/dotfiles}"
+
+(( $# >= 1 )) && USER_HOME=${1%/}
+(( $# >= 2 )) && DOTFILES_SRC=${2%/}
+(( $# >= 3 )) && DOTFILES_BKUP=${3%/}
+
+[[ -e "${DEFAULTS}" ]] && . "${DEFAULTS}"
+
+[[ -e "${DOTFILES_LOC}/lib/command_setup" ]] && . "${DOTFILES_LOC}/lib/command_setup"
 
 lnk(){ ln -fs $2 $3; echo "$(tput setaf 3)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
 cpy(){ mkdir -p "$(dirname $3)" && cp -Rpf $2 $3; echo "$(tput setaf 5)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }

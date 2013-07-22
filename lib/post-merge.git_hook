@@ -1,23 +1,18 @@
 #!/bin/bash
 
-SCRIPT_ABS_LOC="$(readlink -f $0)"
-SCRIPT_LOC="$(dirname ${SCRIPT_ABS_LOC})"
+DEFAULTS="${DEFAULTS:=~/default/dotfiles}"
 
-if [[ -e "$2" ]] ; then
-  GIT_DIR="$(dirname $2)/.git"
-  GIT_WORK_TREE="$(dirname $GIT_DIR)"
-elif [[ "$(basename $SCRIPT_LOC)" == "hooks" ]] ; then
-  GIT_DIR="$(dirname $SCRIPT_LOC)"
-  GIT_WORK_TREE="$(dirname $GIT_DIR)"
-elif [[ "$(basename $SCRIPT_LOC)" == "lib" ]] ; then
-  GIT_DIR="$(dirname $SCRIPT_LOC)/.git"
-  GIT_WORK_TREE="$(dirname $GIT_DIR)"
-else
-  # Unknown Script Location
-  exit 1
-fi
+(( $# >= 1 )) && USER_HOME=${1%/}
+(( $# >= 2 )) && DOTFILES_SRC=${2%/}
+(( $# >= 3 )) && DOTFILES_BKUP=${3%/}
 
-. "${GIT_WORK_TREE}/lib/update_home" "$@"
+[[ -e "${DEFAULTS}" ]] && . "${DEFAULTS}"
+
+[[ -e "${DOTFILES_LOC}/lib/command_setup" ]] && . "${DOTFILES_LOC}/lib/command_setup"
+[[ -e "${DOTFILES_LOC}/lib/update_home" ]] && . "${DOTFILES_LOC}/lib/update_home" || echo "Cannot find helper script aborting ..." && exit 1
+
+GIT_DIR="${DOTFILES_GIT_DIR:=${DOTFILES_LOC}/.git}"
+GIT_WORK_TREE="${DOTFILES_GIT_WORK_TREE:=${DOTFILES_LOC}}"
 
 GITCHANGES=$(git diff-tree --no-commit-id --name-only --relative=home --diff-filter=D -r HEAD)
 
