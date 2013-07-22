@@ -12,6 +12,7 @@ DEFAULTS="${DEFAULTS:=~/default/dotfiles}"
 [[ -e "${DOTFILES_LOC}/lib/update_home" ]] && . "${DOTFILES_LOC}/lib/update_home" || echo "Cannot find helper script aborting ..." && exit 1
 
 install_dotfiles
+. ~/.profile
 
 l_question="Install GIT post-merge hook to auto-update on git pull - (Y)es, (N)o: "
 l_result=$(confirm_move ${l_question})
