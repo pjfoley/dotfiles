@@ -74,7 +74,7 @@ get_dir()
 file_real_name()
 {
   case "${1::4}" in
-    "dot_" )
+    "dot_" | "dcp_" )
       echo ".${1:4}" ;;
     "cpy_" | "mov_" | "mkd_" )
       echo "${1:4}" ;;
@@ -94,7 +94,7 @@ dotfiles_action()
       mov "Moving" $SOURCE $DESTINATION ;;
     "mkd_" )
       mkd "Make Directory" $SOURCE $DESTINATION ;;
-    "cpy_" )
+    "cpy_" | "dcp_" )
       cpy "Copying" $SOURCE $DESTINATION ;;
     "dot_" | * )
       lnk "Linking" $SOURCE $DESTINATION ;;
