@@ -2,7 +2,7 @@
 
 [[ ! -d "~/default" ]] && mkdir -p "~/default"
 
-[[ ! -e ~/default/dotfiles ]] && cat << 'EOF' > ~/default/dotfiles
+[[ ! -e "~/default/dotfiles" ]] && cat << 'EOF' > "~/default/dotfiles"
 # Defaults for dotfiles - sourced by various dotfiles scripts
 
 # Location of dotfiles GIT Repo
@@ -27,6 +27,8 @@ BACKUP=true
 DOTFILES_GIT_DIR="${DOTFILES_GIT_DIR:=${DOTFILES_LOC}/.git}"
 DOTFILES_GIT_WORK_TREE="${DOTFILES_GIT_WORK_TREE:=${DOTFILES_LOC}}"
 EOF
+
+[[ -e "~/default/dotfiles" ]] && . "~/default/dotfiles" || echo "Default values not set" && exit 1
 
 l_CURRENT_DIR=${PWD}
 
