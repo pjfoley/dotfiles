@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEFAULTS="~/default/dotfiles"
+DEFAULTS="${DEFAULTS:=~/default/dotfiles}"
 
 [[ -e "${DEFAULTS}" ]] && . "${DEFAULTS}"
 
