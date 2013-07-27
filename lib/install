@@ -8,6 +8,8 @@ DEFAULTS="${DEFAULTS:=~/default/dotfiles}"
 
 [[ -e "${DEFAULTS}" ]] && . "${DEFAULTS}"
 
+: ${DOTFILES_GIT_DIR?"Need to set the location of GIT Directory"} ${DOTFILES_GIT_WORK_TREE?"Need to set the location of the GIT Work Tree Directory"}
+
 [[ -e "${DOTFILES_LOC}/lib/command_setup" ]] && . "${DOTFILES_LOC}/lib/command_setup"
 [[ -e "${DOTFILES_LOC}/lib/update_home" ]] && . "${DOTFILES_LOC}/lib/update_home" || echo "Cannot find helper script aborting ..." && exit 1
 
