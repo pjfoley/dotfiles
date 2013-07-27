@@ -1,3 +1,0 @@
-command -v git >/dev/null 2>&1 || exit 0
-
-alias gl='git lg'

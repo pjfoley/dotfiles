@@ -1,3 +1,0 @@
-export DIR_dev="$HOME"/dev"
-export DIR_scratch="$HOME"/dev/scratch"
-export DIR_dot="$HOME"/.dotfiles"
