@@ -21,7 +21,7 @@ DOTFILES_SRC="${DOTFILES_SRC:=${DOTFILES_LOC}/home}"
 DOTFILES_BKUP="${DOTFILES_BKUP:=${USER_HOME}/.dotfiles_org}"
 
 # Do we want to backup existing dotfiles
-BACKUP=true
+DOTFILES_BACKUP=true
 
 # Setup Dotfiles location for GIT variables
 DOTFILES_GIT_DIR="${DOTFILES_GIT_DIR:=${DOTFILES_LOC}/.git}"

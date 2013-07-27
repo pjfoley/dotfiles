@@ -8,6 +8,8 @@ DEFAULTS="${DEFAULTS:=~/default/dotfiles}"
 
 [[ -e "${DEFAULTS}" ]] && . "${DEFAULTS}"
 
+DOTFILES_BACKUP="${DOTFILES_BACKUP:=true}"
+
 [[ -e "${DOTFILES_LOC}/lib/command_setup" ]] && . "${DOTFILES_LOC}/lib/command_setup"
 
 lnk(){ ln -fs $2 $3; echo "$(tput setaf 3)${1} $(tput sgr0) - $(tput setaf 2)${2} $(tput sgr0) to ${3}"; }
@@ -33,7 +35,7 @@ exists_file()
 # Call exists function and negate the result
 not_exists_file(){ ! (( [[ $# == 1 ]] && exists_file $1 ) || ( [[ $# == 2 ]] && exists_file $1 $2)) ; }
 
-if [[ ! -d ${DOTFILES_BKUP} ]]; then
+if [[ ! -d ${DOTFILES_BKUP} ]] && DOTFILES_BACKUP; then
   mkdir -p ${DOTFILES_BKUP}
 fi
 
@@ -126,8 +128,8 @@ sync_files()
       [[ "${DOTFILES_FILE::4}" == "mkd_" ]] && SUBDIR="$(get_dir $SOURCE $DOTFILES_SRC)" || SUBDIR=""
     fi
 
-    # If File is not in home just write
-    if not_exists_file $HOME_FILE ; then
+    # If File is not in home or user doesnt want to backup files just write
+    if not_exists_file $HOME_FILE || ! DOTFILES_BACKUP ; then
       dotfiles_action $DOTFILES_FILE $SOURCE $HOME_FILE
     # Don't do anything if dotfile is in home directory
     elif not_exists_file $SOURCE $HOME_FILE ; then
