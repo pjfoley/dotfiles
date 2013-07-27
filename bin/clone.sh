@@ -1,34 +1,8 @@
 #!/bin/bash
 
-[[ ! -d "~/default" ]] && mkdir -p "~/default"
+[[ -e "~/default/dotfiles" ]] && . "~/default/dotfiles" || echo "No default dotfiles settings found at ~/default/dotfiles"
 
-[[ ! -e "~/default/dotfiles" ]] && cat << 'EOF' > "~/default/dotfiles"
-# Defaults for dotfiles - sourced by various dotfiles scripts
-
-# Location of dotfiles GIT Repo
-DOTFILES_GIT_REPO="${DOTFILES_GIT_REPO:=git@github.com:pjfoley/dotfiles.git}"
-
-# User's Home Location
-USER_HOME="${USER_HOME:=${HOME}}"
-
-# Location to store dotfiles
-DOTFILES_LOC="${DOTFILES_LOC:=${USER_HOME}/.dotfiles}"
-
-# Location of the Home Directory files withing the dotfiles repo
-DOTFILES_SRC="${DOTFILES_SRC:=${DOTFILES_LOC}/home}"
-
-# Backup existing dotfiles if it will be replaced
-DOTFILES_BKUP="${DOTFILES_BKUP:=${USER_HOME}/.dotfiles_org}"
-
-# Do we want to backup existing dotfiles
-BACKUP=true
-
-# Setup Dotfiles location for GIT variables
-DOTFILES_GIT_DIR="${DOTFILES_GIT_DIR:=${DOTFILES_LOC}/.git}"
-DOTFILES_GIT_WORK_TREE="${DOTFILES_GIT_WORK_TREE:=${DOTFILES_LOC}}"
-EOF
-
-[[ -e "~/default/dotfiles" ]] && . "~/default/dotfiles" || echo "Default values not set" && exit 1
+: ${DOTFILES_GIT_REPO?"Need to specify the location of your dotfiles git repo"} ${DOTFILES_LOC?"Need to specify where to clone the repo to"}
 
 l_CURRENT_DIR=${PWD}
 
