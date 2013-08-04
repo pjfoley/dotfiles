@@ -1,9 +1,9 @@
 [submodule "home"]
 	path = home
-	url = git@github.com:pjfoley/dotfiles-home.git
+	url = git://github.com/pjfoley/dotfiles-home.git
 [submodule "lib"]
 	path = lib
-	url = git@github.com:pjfoley/dotfiles-lib.git
+	url = git://github.com/pjfoley/dotfiles-lib.git
 [submodule "install"]
 	path = install
-	url = git@github.com:pjfoley/dotfiles-install.git
+	url = git://github.com/pjfoley/dotfiles-install.git
